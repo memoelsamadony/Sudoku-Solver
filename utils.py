@@ -94,7 +94,9 @@ def assign_value(values, box, value):
 def cross(A, B):
     """Cross product of elements in A and elements in B """
     return [x+y for x in A for y in B]
-def diagonal(a,b):
+
+
+def diag(a,b):
     lis1 = []
     lis2 = []
     j = 0
@@ -195,30 +197,3 @@ def display(values):
                       for c in cols))
         if r in 'CF': print(line)
     print()
-
-
-def reconstruct(values, history):
-    """Returns the solution as a sequence of value assignments 
-
-    Parameters
-    ----------
-    values(dict)
-        a dictionary of the form {'box_name': '123456789', ...}
-
-    history(dict)
-        a dictionary of the form {key: (key, (box, value))} encoding a linked
-        list where each element points to the parent and identifies the value
-        assignment that connects from the parent to the current state
-
-    Returns
-    -------
-    list
-        a list of (box, value) assignments that can be applied in order to the
-        starting Sudoku puzzle to reach the solution
-    """
-    path = []
-    prev = values2grid(values)
-    while prev in history:
-        prev, step = history[prev]
-        path.append(step)
-    return path[::-1]

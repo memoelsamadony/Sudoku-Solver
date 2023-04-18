@@ -5,7 +5,7 @@ from utils import *
 row_units = [cross(r, cols) for r in rows]
 column_units = [cross(rows, c) for c in cols]
 square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
-diagonal_units = diagonal(rows,cols)
+diagonal_units = diag(rows,cols)
 unitlist = row_units + column_units + square_units + diagonal_units
 
 # Must be called after all units (including diagonals) are added to the unitlist
@@ -13,7 +13,7 @@ units = extract_units(unitlist, boxes)
 peers = extract_peers(units, boxes)
 
 
-def naked_twins(values):
+def naked_twins(values,history):
     """Eliminate values using the naked twins strategy."""
     
     # Find all instances of naked twins
@@ -34,12 +34,14 @@ def naked_twins(values):
         for box in unit:
             if box not in potential_twins:
                 for digit in twin:
-                    values[box] = values[box].replace(digit, '')    
+                    values[box] = values[box].replace(digit, '')
+                    if len(values[box]) == 1:
+                        history[box] = values[box]  
 
-    return values
+    return values,history
 
 
-def eliminate(values):
+def eliminate(values,history):
     """Apply the eliminate strategy to a Sudoku puzzle
 
     The eliminate strategy says that if a box has a value assigned, then none
@@ -60,11 +62,13 @@ def eliminate(values):
         digit = values[box]
         for peer in peers[box]:
             values[peer] = values[peer].replace(digit,'')
-    return values
+            if len(values[peer]) == 1:
+                history[peer] = values[peer]
+    return values,history
     
 
 
-def only_choice(values):
+def only_choice(values,history):
     """Apply the only choice strategy to a Sudoku puzzle
 
     The only choice strategy says that if only one box in a unit allows a certain
@@ -86,11 +90,12 @@ def only_choice(values):
             dplaces = [box for box in unit if digit in values[box]]
             if len(dplaces) == 1:
                 values[dplaces[0]] = digit
-    return values
+                history[dplaces[0]] = digit
+    return values,history
      
 
 
-def reduce_puzzle(values):
+def reduce_puzzle(values,history):
     """Reduce a Sudoku puzzle by repeatedly applying all constraint strategies
 
     Parameters
@@ -107,17 +112,17 @@ def reduce_puzzle(values):
     stalled = False
     while not stalled:
         solved_values_before = len([box for box in values.keys() if len(values[box]) == 1])
-        values = eliminate(values)
-        values = naked_twins(values)
-        values = only_choice(values)
+        values,history = eliminate(values,history)
+        values,history = naked_twins(values,history)
+        values,history = only_choice(values,history)
         solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
         stalled = solved_values_before == solved_values_after
         if len([box for box in values.keys() if len(values[box]) == 0]):
             return False
-    return values
+    return values,history
 
 
-def search(values):
+def search(values,history):
     """Apply depth first search to solve Sudoku puzzles in order to solve puzzles
     that cannot be solved by repeated reduction alone.
 
@@ -138,12 +143,12 @@ def search(values):
     """
 
     # First, reduce the puzzle using the previous function
-    values = reduce_puzzle(values)
+    values,history = reduce_puzzle(values,history)
     if values is False:
         return False
             
     if solved(values):
-        return values
+        return values,history
     # Choose one of the unfilled squares with the fewest possibilities
     box,value = choose_min(values)
             
@@ -151,9 +156,10 @@ def search(values):
     for i in value:
         new_values = values.copy()
         new_values[box] = i 
-        solve = search(new_values)
+        history[box] = i
+        solve,history = search(new_values,history)
         if solve :
-            return solve
+            return solve , history
 
 
 def solve(grid):
@@ -172,19 +178,20 @@ def solve(grid):
         The dictionary representation of the final sudoku grid or False if no solution exists.
     """
     values = grid2values(grid)
-    values = search(values)
-    return values
+    history = {}
+    values,history = search(values , history)
+    return values,history
 
 
 if __name__ == "__main__":
     diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
     #display(grid2values(diag_sudoku_grid))
-    result = solve(diag_sudoku_grid)
+    result,history = solve(diag_sudoku_grid) 
     display(result)
 
 
-    # import PySudoku
-    # PySudoku.play(grid2values(diag_sudoku_grid), result,history)
+    import PySudoku
+    PySudoku.play(grid2values(diag_sudoku_grid), result,history)
 
     # except SystemExit:
     #     pass
