@@ -1,7 +1,4 @@
 
-from collections import defaultdict
-
-
 rows = 'ABCDEFGHI'
 cols = '123456789'
 boxes = [r + c for r in rows for c in cols]
@@ -26,7 +23,7 @@ def extract_units(unitlist, boxes):
         containing the units that the box belongs to (i.e., the "member units")
     """
     # the value for keys that aren't in the dictionary are initialized as an empty list
-    units = defaultdict(list)
+    units = dict(list)
     for current_box in boxes:
         for unit in unitlist:
             if current_box in unit:
@@ -56,7 +53,7 @@ def extract_peers(units, boxes):
         together with the key box)
     """
     # the value for keys that aren't in the dictionary are initialized as an empty list
-    peers = defaultdict(set)  # set avoids duplicates
+    peers = dict(set)  # set avoids duplicates
     for key_box in boxes:
         for unit in units[key_box]:
             for peer_box in unit:
@@ -197,28 +194,28 @@ def display(values):
     print()
 
 
-def reconstruct(values, history):
-    """Returns the solution as a sequence of value assignments 
+# def reconstruct(values, history):
+#     """Returns the solution as a sequence of value assignments 
 
-    Parameters
-    ----------
-    values(dict)
-        a dictionary of the form {'box_name': '123456789', ...}
+#     Parameters
+#     ----------
+#     values(dict)
+#         a dictionary of the form {'box_name': '123456789', ...}
 
-    history(dict)
-        a dictionary of the form {key: (key, (box, value))} encoding a linked
-        list where each element points to the parent and identifies the value
-        assignment that connects from the parent to the current state
+#     history(dict)
+#         a dictionary of the form {key: (key, (box, value))} encoding a linked
+#         list where each element points to the parent and identifies the value
+#         assignment that connects from the parent to the current state
 
-    Returns
-    -------
-    list
-        a list of (box, value) assignments that can be applied in order to the
-        starting Sudoku puzzle to reach the solution
-    """
-    path = []
-    prev = values2grid(values)
-    while prev in history:
-        prev, step = history[prev]
-        path.append(step)
-    return path[::-1]
+#     Returns
+#     -------
+#     list
+#         a list of (box, value) assignments that can be applied in order to the
+#         starting Sudoku puzzle to reach the solution
+#     """
+#     path = []
+#     prev = values2grid(values)
+#     while prev in history:
+#         prev, step = history[prev]
+#         path.append(step)
+#     return path[::-1]
