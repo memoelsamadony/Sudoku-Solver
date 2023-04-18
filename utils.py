@@ -95,7 +95,44 @@ def cross(A, B):
     """Cross product of elements in A and elements in B """
     return [x+y for x in A for y in B]
 
+def diag(a,b):
+    lis1 = []
+    lis2 = []
+    j = 0
+    for i in range(len(a)):
+        x = a[i] + b[i]
+        lis1.append(x)
+        j = len(a) - i - 1
+        x = a[i] + b[j]
+        lis2.append(x)
+    return [lis1,lis2]
 
+
+def choose_min(values):
+    min = 9999
+    min_box = ''
+    min_value = ''
+    
+    for box in values:
+        if len(values[box]) > 1:
+            if len(values[box]) < min :
+                min = len(values[box])
+                min_box = box
+                min_value = values[box]
+    
+    
+    return min_box,min_value
+        
+        
+def solved(values):
+    solved_boxes = 0
+    for i in values:
+        if len(values[i]) == 1:
+            solved_boxes += 1
+    if solved_boxes == len(values):
+        return True
+    else:
+        return False
 
 
 
