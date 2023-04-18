@@ -15,6 +15,32 @@ def diag(a,b):
     return [lis1,lis2]
 
 
+def choose_min(values):
+    min = 9999
+    min_box = ''
+    min_value = ''
+    
+    for box in values:
+        if len(values[box]) > 1:
+            if len(values[box]) < min :
+                min = len(values[box])
+                min_box = box
+                min_value = values[box]
+    
+    
+    return min_box,min_value
+        
+        
+def solved(values):
+    solved_boxes = 0
+    for i in values:
+        if len(values[i]) == 1:
+            solved_boxes += 1
+    if solved_boxes == len(values):
+        return True
+    else:
+        return False
+
 
 
 row_units = [cross(r, cols) for r in rows]
