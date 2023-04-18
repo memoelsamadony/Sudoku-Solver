@@ -14,56 +14,27 @@ peers = extract_peers(units, boxes)
 
 
 def naked_twins(values):
-    """Eliminate values using the naked twins strategy.
-
-    The naked twins strategy says that if you have two or more unallocated boxes
-    in a unit and there are only two digits that can go in those two boxes, then
-    those two digits can be eliminated from the possible assignments of all other
-    boxes in the same unit.
-
-    Parameters
-    ----------
-    values(dict)
-        a dictionary of the form {'box_name': '123456789', ...}
-
-    Returns
-    -------
-    dict
-        The values dictionary with the naked twins eliminated from peers
-
-    Notes
-    -----
-    Your solution can either process all pairs of naked twins from the input once,
-    or it can continue processing pairs of naked twins until there are no such
-    pairs remaining -- the project assistant test suite will accept either
-    convention. However, it will not accept code that does not process all pairs
-    of naked twins from the original input. (For example, if you start processing
-    pairs of twins and eliminate another pair of twins before the second pair
-    is processed then your code will fail the PA test suite.)
-
-    The first convention is preferred for consistency with the other strategies,
-    and because it is simpler (since the reduce_puzzle function already calls this
-    strategy repeatedly).
-
-
-    """
+    """Eliminate values using the naked twins strategy."""
+    
     # Find all instances of naked twins
     naked_twins = []
     for unit in unitlist:
-        unit_values = [values[box] for box in unit
-                       if len(values[box]) == 2]
-        twins = set([value for value in unit_values
-                     if unit_values.count(value) == 2])
-        for twin in twins:
-            naked_twins.append((unit, twin))
-
+        # Get boxes with only 2 digits
+        two_digit_boxes = [box for box in unit if len(values[box]) == 2]  
+        
+        # Get potential twins 
+        potential_twins = set(two_digit_boxes)        
+        # Check if we have 2 boxes with the same digits                              
+        for box1 in two_digit_boxes:            
+            if two_digit_boxes.count(box1) == 2:
+                naked_twins.append((unit, values[box1])) 
+                
     # Eliminate the naked twins as possibilities for their peers
     for unit, twin in naked_twins:
         for box in unit:
-            if values[box] != twin:
+            if box not in potential_twins:
                 for digit in twin:
-                    values[box] = values[box].replace(digit, '')
-    
+                    values[box] = values[box].replace(digit, '')    
 
     return values
 
