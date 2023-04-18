@@ -96,17 +96,6 @@ def cross(A, B):
     return [x+y for x in A for y in B]
 
 
-def diag(a,b):
-    lis1 = []
-    lis2 = []
-    j = 0
-    for i in range(len(a)):
-        x = a[i] + b[i]
-        lis1.append(x)
-        j = len(a) - i - 1
-        x = a[i] + b[j]
-        lis2.append(x)
-    return [lis1,lis2]
 
 
 def choose_min(values):

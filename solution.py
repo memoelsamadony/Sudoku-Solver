@@ -2,6 +2,21 @@
 from utils import *
 
 
+def diag(a,b):
+    lis1 = []
+    lis2 = []
+    j = 0
+    for i in range(len(a)):
+        x = a[i] + b[i]
+        lis1.append(x)
+        j = len(a) - i - 1
+        x = a[i] + b[j]
+        lis2.append(x)
+    return [lis1,lis2]
+
+
+
+
 row_units = [cross(r, cols) for r in rows]
 column_units = [cross(rows, c) for c in cols]
 square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
