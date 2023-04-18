@@ -56,30 +56,28 @@ peers = extract_peers(units, boxes)
 
 def naked_twins(values):
     """Eliminate values using the naked twins strategy."""
-    
+
     # Find all instances of naked twins
     naked_twins = []
     for unit in unitlist:
         # Get boxes with only 2 digits
-        two_digit_boxes = [box for box in unit if len(values[box]) == 2]  
-        
-        # Get potential twins 
-        potential_twins = set(two_digit_boxes)        
-        # Check if we have 2 boxes with the same digits                              
-        for box1 in two_digit_boxes:            
-            if two_digit_boxes.count(box1) == 2:
-                naked_twins.append((unit, values[box1])) 
-                
+        two_digit_boxes = [box for box in unit if len(values[box]) == 2]
+
+        # Find naked twins
+        for box1 in two_digit_boxes:
+            for box2 in two_digit_boxes:
+                if box1 != box2 and values[box1] == values[box2]:
+                    naked_twins.append((unit, values[box1]))
+
     # Eliminate the naked twins as possibilities for their peers
     for unit, twin in naked_twins:
+        twin_boxes = [box for box in unit if values[box] == twin]
         for box in unit:
-            if box not in potential_twins:
+            if box not in twin_boxes:
                 for digit in twin:
                     values[box] = values[box].replace(digit, '')
-                    # if len(values[box]) == 1:
-                    #     history[box] = values[box]  
 
-    return values#,history
+    return values
 
 
 def eliminate(values):
