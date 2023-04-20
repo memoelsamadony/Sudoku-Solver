@@ -189,11 +189,11 @@ if __name__ == "__main__":
     result,history = solve(diag_sudoku_grid)
     display(result)
 
+    try:
+        import PySudoku
+        PySudoku.play(grid2values(diag_sudoku_grid), result,history)
 
-    import PySudoku
-    PySudoku.play(grid2values(diag_sudoku_grid), result,history)
-
-    # except SystemExit:
-    #     pass
-    # except:
-    #     print('We could not visualize your board due to a pygame issue. Not a problem! It is not a requirement.')
+    except SystemExit:
+        pass
+    except:
+        print('We could not visualize your board due to a pygame issue. Not a problem! It is not a requirement.')
