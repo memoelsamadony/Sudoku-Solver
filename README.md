@@ -1,66 +1,77 @@
-# Solve Sudoku with AI
+# Diagonal Sudoku Solver
 
-## Synopsis
+A constraint-propagation + depth-first search solver for **diagonal Sudoku** puzzles, with an animated `pygame` visualization that replays every deduction the solver makes, in order.
 
-In this project, you will extend the Sudoku-solving agent developed in the classroom lectures to solve _diagonal_ Sudoku puzzles and implement a new constraint strategy called "naked twins". A diagonal Sudoku puzzle is identical to traditional Sudoku puzzles with the added constraint that the boxes on the two main diagonals of the board must also contain the digits 1-9 in each cell (just like the rows, columns, and 3x3 blocks). The naked twins strategy says that if you have two or more unallocated boxes in a unit and there are only two digits that can go in those two boxes, then those two digits can be eliminated from the possible assignments of all other boxes in the same unit.
+The project began as Udacity's AIND "Solve Sudoku with AI" assignment, but has grown beyond the starter scaffold: the solver tracks an assignment history so the visualizer can replay the solving process step-by-step, picks branching variables using a minimum-remaining-values heuristic, and ships with two visualization front-ends (a polished board renderer and a minimal animation harness).
 
+## What "diagonal Sudoku" means
 
-## Quickstart Guide
+Standard Sudoku requires the digits 1–9 to appear exactly once in every row, column, and 3×3 box. Diagonal Sudoku adds two more constraints: each of the two main diagonals must also contain 1–9. This makes many "easy" puzzles considerably tighter and gives the constraint-propagation strategies more leverage.
 
-**YOU ONLY NEED TO WRITE CODE IN `solution.py`.**
+## How it solves
 
-1. Follow the instructions in the classroom lesson to install and configure the `aind` [Anaconda](https://www.continuum.io/downloads) environment which includes several important packages that are used for the project. OS X or Unix/Linux users can activate the aind environment by running the following (Windows users simply run `activate aind`):
-    
-    `$ source activate aind`
+The solver alternates two phases until the puzzle is either solved or proven unsolvable:
 
-2. You can run a small set of test cases using the local test suite. 
+### 1. Constraint propagation ([solution.py:98](solution.py#L98))
 
-    `(aind)$ python -m unittest -v`
+`reduce_puzzle()` repeatedly applies three strategies until no box changes:
 
-3. Copy your code from the classroom for the search and basic strategies, then add the diagonal units at the top of the solutions.py file and complete the `naked_twins()` function.  Pseudocode for the `naked_twins()` function is available [here](https://github.com/udacity/artificial-intelligence/blob/master/Projects/1_Sudoku/pseudocode.md).
+- **Eliminate** ([solution.py:44](solution.py#L44)) — if a box is solved, remove its digit from all of its peers (row, column, 3×3 box, and diagonals if applicable).
+- **Only Choice** ([solution.py:71](solution.py#L71)) — if a digit can only legally land in one box of a unit, assign it there.
+- **Naked Twins** ([solution.py:16](solution.py#L16)) — if two boxes in a unit share the same exact pair of candidates, no other box in that unit can contain those two digits, so they get stripped from the rest of the unit.
 
-4. Run the test suite again to check your progress. Once you pass all the test cases in the local test suite, you can submit the project to run more comprehensive tests with the remote test suite:
+### 2. Depth-first search ([solution.py:125](solution.py#L125))
 
-    `(aind)$ udacity submit`
+When propagation stalls, `search()` picks the unsolved box with the **fewest remaining candidates** (a minimum-remaining-values heuristic, implemented in `choose_min()` at [utils.py:111](utils.py#L111)), branches on each candidate, and recursively tries to solve the resulting puzzle. Backtracking happens automatically when a branch leads to a contradiction.
 
-5. You can run the code with visualization (see the last section of the readme for more information)
+### Units, peers, and the diagonals
 
-    `(aind)$ python solution.py`
+The board's structure is built up at module load time in [solution.py:5-13](solution.py#L5-L13). The diagonals are produced by a small helper, `diag()` ([utils.py:98](utils.py#L98)), which generates both main diagonals from the row and column labels and appends them to the standard `unitlist`. From there `extract_units` and `extract_peers` derive the per-box lookup tables the strategies use.
 
+### Solving history
 
-### Notes
+Every assignment is recorded in a `history` dict that flows through every strategy. The visualizer consumes this log to animate the solve in the same order the algorithm discovered each value — rather than just flashing the final answer onto the board.
 
-- You will not receive credit for the project until you submit the zip file created by `udacity submit` in your classroom.
+## Running it
 
-- You must submit _exactly_ the zip file created by the CLI in step 3 to the classroom; if you make any changes to the file, you'll receive an error message when you attempt to submit in the classroom.
+```bash
+python solution.py
+```
 
+This will solve the built-in diagonal puzzle, print the solved grid to the terminal, and (if `pygame` is installed) launch the animated visualization.
 
-## Instructions
+To use a different puzzle, edit `diag_sudoku_grid` at the bottom of [solution.py](solution.py). The grid is an 81-character string read row-major, with `.` for empty cells.
 
-You must complete the required functions in the 'solution.py' file (copy in code from the classroom where indicated, and add or extend with new code as described below). The `test_solution.py` file includes a few unit tests for local testing, but the primary mechanism for testing your code is the Udacity Project Assistant command line utility described in the next section.
+### Tests
 
-YOU SHOULD EXPECT TO MODIFY OR WRITE YOUR OWN UNIT TESTS AS PART OF COMPLETING THIS PROJECT. There is no requirement to write test cases, but the Project Assistant test suite is not shared with students so writing your own tests may be necessary to find and resolve any errors that arise there.
+```bash
+python -m unittest -v
+```
 
-1. Add the two new diagonal units to the `unitlist` at the top of solution.py. Re-run the local tests with `python -m unittest` to confirm your solution. 
-
-1. Copy your code from the classroom for the `eliminate()`, `only_choice()`, `reduce_puzzle()`, and `search()` into the corresponding functions in the `solution.py` file.
-
-1. Implement the `naked_twins()` function (see the pseudocode [here](https://github.com/udacity/artificial-intelligence/blob/master/Projects/1_Sudoku/pseudocode.md) for help), and update `reduce_puzzle()` to call it (along with the other existing strategies). Re-run the local tests with `python -m unittest -v` to confirm your solution.
-
-1. Run the remote tests with `udacity submit` to confirm your solution. If any of the remote test cases fail, use the feedback to write your own local test cases for debugging.
-
-
-## Submission
-
-To submit your code, run `udacity submit` from a terminal in the top-level directory of this project. You will be prompted for a username and password the first time the script is run. If you login using google or facebook, visit [this link](https://project-assistant.udacity.com/auth_tokens/jwt_login) for alternate login instructions.
-
-The Udacity-PA CLI tool is automatically installed with the AIND conda environment provided in the classroom, but you can also install it manually by running `pip install udacity-pa`. You can submit your code for scoring by running `udacity submit`. The project assistant server has a collection of unit tests that it will execute on your code, and it will provide feedback on any successes or failures. You must pass all test cases in the project assistant to pass the project.
-
-Once your project passes all test cases on the Project Assistant, submit the zip file created by the `udacity submit` command in the classroom to automatically receive credit for the project. NOTE: You will not receive personalized feedback for this project on submissions that pass all test cases, however, all other projects in the term do provide personalized feedback on both passing & failing submissions.
-
+The local suite in [tests/test_solution.py](tests/test_solution.py) exercises the diagonal-units setup, the naked-twins reduction, and the end-to-end solve.
 
 ## Visualization
 
-**Note:** The `pygame` library is required to visualize your solution -- however, the `pygame` module can be troublesome to install and configure. It should be installed by default with the AIND conda environment, but it is not reliable across all operating systems or versions. Please refer to the pygame documentation [here](http://www.pygame.org/download.shtml), or discuss among your peers in the slack group if you need help.
+Two pygame front-ends ship with the project:
 
-Running `python solution.py` will automatically attempt to visualize your solution, but you mustuse the provided `assign_value` function (defined in `utils.py`) to track the puzzle solution progress for reconstruction during visuzalization.
+- **[PySudoku.py](PySudoku.py)** — the main visualizer. Renders the puzzle on top of `images/sudoku-board-bare.jpg` and replays the solver's `history` so you can watch each deduction land on the board.
+- **[naive.py](naive.py)** — a minimal animation that simply fills cells in row-major order. Useful as a sanity check when `PySudoku.py`'s assets aren't available.
+
+`pygame` is an optional dependency; if it's missing, `solution.py` still solves the puzzle and prints the result — it just skips the animation.
+
+## Project layout
+
+| File | Purpose |
+| --- | --- |
+| [solution.py](solution.py) | Solver: strategies, propagation loop, search, entry point |
+| [utils.py](utils.py) | Board construction, peer/unit extraction, grid I/O, MRV heuristic, history-aware `assign_value` |
+| [PySudoku.py](PySudoku.py) | Animated pygame visualizer driven by the solver's history log |
+| [SudokuSquare.py](SudokuSquare.py) | Per-cell render primitives used by `PySudoku.py` |
+| [GameResources.py](GameResources.py) | Pygame asset loader |
+| [naive.py](naive.py) | Minimal alternative visualization |
+| [tests/test_solution.py](tests/test_solution.py) | Local unit tests |
+| [images/](images/) | Board background and other visual assets |
+
+## Acknowledgements
+
+The original problem statement, starter constraints, and the naked-twins formulation come from Udacity's Artificial Intelligence Nanodegree. Everything in the solver, the history-based replay, the MRV branching, and the visualization wiring is implemented in this repo.
